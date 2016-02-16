@@ -196,3 +196,5 @@ All the output tree files are in the folder /trees in the working directory.
 ## Citing these tools
 
 Please cite as: Brandon Seah (2014) Phylogenomics-tools. Online: https://github.com/kbseah/phylogenomics-tools
+
+DOI available via Zenodo: [![DOI](https://zenodo.org/badge/10602/kbseah/phylogenomics-tools.svg)](https://zenodo.org/badge/latestdoi/10602/kbseah/phylogenomics-tools)
