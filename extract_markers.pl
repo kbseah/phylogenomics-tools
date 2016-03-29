@@ -1,5 +1,86 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+perl extract_markers.pl - Extract protein-coding marker genes and 16S rRNA genes
+
+=head1 SYNOPSIS
+
+    perl extract_markers.pl --file <rename_table> \
+			    --wd <working directory> \
+                            --amphora_path <path to Amphora2>
+    
+    perl extract_markers.pl --help
+
+=head1 DESCRIPTION
+
+Run Amphora2 or Phyla-Amphora scripts to extract protein-coding marker genes
+for each genome. Optionally extract 16S rRNA gene with Metaxa.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --file <file>
+
+Shortnames and filenames table.
+
+=item --wd <path>
+
+Path to working directory
+
+=item --phyla_amphora
+
+Use Phyla-Amphora instead of Amphora2 (Default: No)
+
+=item --phylum <integer>
+
+Which phylum-specific set of marker genes to use, for Phyla-Amphora (Default: 3)
+
+=item --amphora_path <path>
+
+Path to Amphora2 or Phyla-Amphora scripts and databases.
+
+=item --cpu <integer>
+
+Number of CPUs for parallelized Amphora2 scripts
+
+=item --16S
+
+Logical: Extract 16S rRNA sequences too, with Metaxa?
+
+=item --help|-h
+
+This help message
+
+=back
+
+=head1 OUTPUT
+
+For each genome specified in the list given in --file, a folder will be created
+with the corresponding shortname, and the Amphora2 or Phyla-Amphora markers
+extracted as Fasta files there.
+
+=head1 COPYRIGHT AND LICENSE
+
+phylogenomics-tools. Copyright (C) 2013 Brandon Seah (kbseah@mpi-bremen.de)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+=cut
+
 # Calls AMPHORA2 scripts to call marker genes
 # Cite AMPHORA2, HMMER, Metaxa
 
@@ -7,6 +88,7 @@ use strict;
 use warnings;
 use Cwd qw();
 use Getopt::Long;
+use Pod::Usage;
 
 ### Global variables
 
@@ -24,7 +106,7 @@ my $NUMTHREADS = 1;
 
 ### Get options
 
-if (! @ARGV) { usage(); } 	# print usage statement if no options specified
+if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 GetOptions (
 	"file=s" => \$rename_table,
 	"wd=s" => \$path_to_working_directory,
@@ -32,8 +114,11 @@ GetOptions (
 	"phyla_amphora" => \$use_phyla,
 	"cpu:s" => \$NUMTHREADS,
 	"phylum:s" => \$PHYLUM,
-	"16S" => \$use_metaxa )
-or usage();
+	"16S" => \$use_metaxa,
+        "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
+        ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
+# specify arguments, otherwise print usage statement
+
 
 ### Main code block 
 

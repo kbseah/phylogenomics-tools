@@ -1,5 +1,83 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+concat_align.pl - Concatenate alignment of marker genes
+
+=head1 SYNOPSIS
+
+    perl concat_align.pl --file <filename table> \
+                         --wd <working directory> \
+                         --markers <marker_table> \
+			 --out <output prefix> \
+                         --mask \
+			 --model_select 
+    
+    perl concat_align.pl --help
+
+=head1 DESCRIPTION
+
+Concatenate alignments of each marker gene listed in marker table to a single
+alignment file, with output prefix for file name.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --file <file>
+
+Shortnames and filenames table.
+
+=item --wd <string>
+
+Path to working directory
+
+=item --markers <file>
+
+Table of marker gene names for further processing.
+
+=item --out <string>
+
+Prefix for output file
+
+=item --mask
+
+Logical: Use Zorro to mask alignment columns by alignment quality? (Default: No)
+
+=item --model_select
+
+Logical: Use automated model selection? (Slow) (Default: No)
+
+=item --help|-h
+
+This help message
+
+=back
+
+=head1 OUTPUT
+
+Alignment in Fasta format with filename given by --out, in working directory.
+
+=head1 COPYRIGHT AND LICENSE
+
+phylogenomics-tools. Copyright (C) 2013 Brandon Seah (kbseah@mpi-bremen.de)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+=cut
+
 use strict;
 use warnings;
 use Cwd qw();
@@ -10,7 +88,7 @@ use Bio::Seq;
 use Bio::AlignIO;
 use Bio::SimpleAlign;
 use Bio::LocatableSeq;
-
+use Pod::Usage;
 
 ### Initialize variables 
 
@@ -27,7 +105,7 @@ my $raxmlExecutable = "raxmlHPC-PTHREADS -T 4";	# Which RAxML version to use?
 
 my $path = Cwd::cwd();	# Print current working directory to $path
 
-if (! @ARGV ) { usage(); }
+if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 
 ### Get options
 
@@ -37,8 +115,9 @@ GetOptions (
 	"wd=s" => \$path_to_wd,
 	"out=s" => \$output_aln_prefix,
 	"mask" => \$use_mask,
-	"model_select" => \$model_choose
-) or usage();
+	"model_select" => \$model_choose,
+	"help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
+        ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 
 ### Main code block
 

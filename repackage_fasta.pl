@@ -1,5 +1,80 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+repackage_fasta.pl - Reorganize Fasta files by marker gene
+
+=head1 SYNOPSIS
+
+    perl repackage_fasta.pl --file <filename table> \
+                            --wd <working directory> \
+                            --markers <marker_table> \
+                            --mask
+    
+    perl repackage_fasta.pl --help
+
+=head1 DESCRIPTION
+
+Creates a new folder "alignments" in working folder, creates a separate Fasta
+file for each marker gene in marker table and aligns them with Muscle.
+
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --file <file>
+
+Shortnames and filenames table.
+
+=item --wd <string>
+
+Path to working directory
+
+=item --markers <file>
+
+Table of marker gene names for further processing.
+
+=item --16S
+
+Logical: Include 16S gene? (Default: No)
+
+=item --mask
+
+Logical: Use Zorro to mask alignment columns by alignment quality? (Default: No)
+
+=item --help|-h
+
+This help message
+
+=back
+
+=head1 OUTPUT
+
+New folder "alignments" in working directory. Fasta file for each marker gene
+with the sequences from each genome. Alignments for each marker gene created
+by Muscle.
+
+=head1 COPYRIGHT AND LICENSE
+
+phylogenomics-tools. Copyright (C) 2013 Brandon Seah (kbseah@mpi-bremen.de)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+=cut
+
 # Script to read list of marker genes to align for phylogenetic analysis
 # Repackage them into Multifasta files with species shortnames as headers
 # Call MUSCLE for alignment
@@ -9,6 +84,7 @@ use warnings;
 use Cwd qw();
 use File::Path qw(make_path);
 use Getopt::Long;
+use Pod::Usage;
 
 my $path = Cwd::cwd();
 my $species_file;
@@ -19,15 +95,16 @@ my @shortnames;
 my $use_mask = 0;
 my $include_16S =0;
 
-if ( !@ARGV ) { usage(); }
+if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 
 GetOptions (
 	"file=s" => \$species_file,
 	"markers=s" => \$marker_file,
 	"wd=s" => \$path_to_wd,
 	"mask" => \$use_mask,
-	"16S" => \$include_16S
-) or usage();
+	"16S" => \$include_16S,
+        "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
+        ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 
 read_shortnames();
 read_marker_names();

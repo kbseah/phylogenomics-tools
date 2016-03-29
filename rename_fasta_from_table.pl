@@ -1,5 +1,74 @@
 #!/usr/bin/perl
 
+=head1 NAME
+
+rename_fasta_from_table.pl - Rename Fasta files by shortnames for phylogenomics-tools
+
+=head1 SYNOPSIS
+
+    perl rename_fasta_from_table.pl --file <filename table> \
+                                    --orig <path to originals> \
+                        		    --wd <new folder name>
+    
+    perl rename_fasta_from_table.pl --help
+
+=head1 DESCRIPTION
+
+Rename Fasta files with shortnames (<10 characters) for phylogenomics pipeline.
+See https://github.com/kbseah/phylogenomics-tools for more information.
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --file <file>
+
+Tab-delimited table with two columns: 1. original filenames of Fasta files
+for microbial genomes, 2. shortnames (<10 characters alphanumeric and
+underscore).
+
+=item --orig <path>
+
+Path to original files
+
+=item --wd <string>
+
+Name for new working directory (will overwrite if already exists)
+
+=item --help|-h
+
+This help message
+
+=back
+
+=head1 OUTPUT
+
+New fasta files with corresponding short names will be created in the new
+folder specified by --wd. 
+
+Fasta headers will be replaced by FILENAME_COUNTER where COUNTER enumerates
+header numbers in a multi-Fasta file
+
+=head1 COPYRIGHT AND LICENSE
+
+phylogenomics-tools. Copyright (C) 2013 Brandon Seah (kbseah@mpi-bremen.de)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+=cut
+
 # This script renames fasta files for further processing
 # Input:
 ## Tab-delimited table with column 1 - original fasta filenames, column 2 - replacement filenames
@@ -14,18 +83,21 @@ use strict;
 use warnings;
 use Getopt::Long;
 use File::Path qw(make_path);
+use Pod::Usage;
 
 my %rename_hash;
 my $rename_table = "rename_table";
 my $path_to_original_files = "original_fasta";
 my $path_to_new_files = "new_fasta";
 
-if ( ! @ARGV ) {usage();}
+if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 
 GetOptions (
 	"file=s" => \$rename_table,
 	"orig=s" => \$path_to_original_files,
-	"wd=s" => \$path_to_new_files,) or usage();	# specify arguments, otherwise print usage statement
+	"wd=s" => \$path_to_new_files,
+    "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
+    ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);	# specify arguments, otherwise print usage statement
 read_rename_table();
 check_for_duplicate_shortnames();
 rename_fasta_files();
