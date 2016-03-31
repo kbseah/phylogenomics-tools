@@ -29,6 +29,10 @@ Shortnames and filenames table.
 
 Path to working directory
 
+=item --seqtype <string>
+
+Type of input sequence; either "DNA" or "protein" (Default: DNA)
+
 =item --phyla_amphora
 
 Use Phyla-Amphora instead of Amphora2 (Default: No)
@@ -41,9 +45,15 @@ Which phylum-specific set of marker genes to use, for Phyla-Amphora (Default: 3)
 
 Path to Amphora2 or Phyla-Amphora scripts and databases.
 
+=item --archaea
+
+Use Archaeal markers for Amphora2 (Default: no).
+Does not work with Phyla-Amphora (which has only Bacterial markers)
+
 =item --cpu <integer>
 
-Number of CPUs for parallelized Amphora2 scripts
+(For testing purposes only - doesn't work with standard Phyla-Amphora scripts)
+Number of CPUs for modified Phyla-Amphora scripts
 
 =item --16S
 
@@ -100,6 +110,8 @@ my $path_to_working_directory = "new_fasta";
 my $path_to_amphora;
 my $use_metaxa = 0;
 my $use_phyla = 0;
+my $seqtype = "DNA";
+my $use_Archaea = 0;
 my $PHYLUM = 3;
 my @dirnames;	# array to hold genome shortnames
 my $NUMTHREADS = 1;
@@ -108,15 +120,17 @@ my $NUMTHREADS = 1;
 
 if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 GetOptions (
-	"file=s" => \$rename_table,
-	"wd=s" => \$path_to_working_directory,
-	"amphora_path=s" =>\$path_to_amphora, 
-	"phyla_amphora" => \$use_phyla,
-	"cpu:s" => \$NUMTHREADS,
-	"phylum:s" => \$PHYLUM,
-	"16S" => \$use_metaxa,
-        "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
-        ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
+    "file=s" => \$rename_table,
+    "wd=s" => \$path_to_working_directory,
+    "seqtype=s" => \$seqtype,
+    "amphora_path=s" =>\$path_to_amphora, 
+    "phyla_amphora" => \$use_phyla,
+    "cpu:s" => \$NUMTHREADS,
+    "phylum:s" => \$PHYLUM,
+    "archaea" => \$use_Archaea,
+    "16S" => \$use_metaxa,
+    "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
+    ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 # specify arguments, otherwise print usage statement
 
 
@@ -125,15 +139,27 @@ GetOptions (
 print STDERR "*** Job started *** \n";
 
 read_rename_table();
+
 if ( $use_phyla == 0 ) {
-	run_amphora2();
+    run_amphora2();
 }
 elsif ( $use_phyla == 1 ) {
-	run_phyla_amphora();
+    if ($use_Archaea == 1) { # Catch invalid combination
+        print STDERR "Error: Cannot use Archaeal markers with Phyla-Amphora \n";
+        print STDERR "Exiting ...\n";
+        exit;
+    } else {
+        if ($PHYLUM < 0 || $PHYLUM > 20) {
+            print STDERR "Warning: Phylum number must be between 0 and 20 (see Phyla-Amphora manual)\n";
+            print STDERR "Resetting Phylum parameter to 0 (use all markers)\n";
+            $PHYLUM = 0;
+        }
+        run_phyla_amphora();
+    }
 }
 if ( $use_metaxa == 1 ) {
-	run_metaxa();
-	cleanup_metaxa();
+    run_metaxa();
+    cleanup_metaxa();
 }
 print STDERR "*** Job complete *** \n";
 
@@ -171,27 +197,50 @@ sub read_rename_table {
 
 sub run_amphora2 {
 	print STDERR "Extracting AMPHORA2 markers... \n";
+        my @options; # Amphora2 options
+        if ($seqtype eq "DNA") {
+            push @options, "-DNA";
+        }
+        if ($use_Archaea == 0 ) {
+            push @options, "-Bacteria";
+        } elsif ($use_Archaea == 1) {
+            push @options, "-Archaea";
+        }
+        my $options_string = join " ", @options;
 	foreach (@dirnames) {
-		print STDERR "... Working on directory ", $_, " ... \n";
-		chdir "$path_to_working_directory/$_";
-		system("perl $path_to_amphora/Scripts/MarkerScanner.pl -DNA -Bacteria $_\.fasta");
-	#	system("perl $path_to_amphora/Scripts/MarkerAlignTrim.pl -OutputFormat fasta");
-		chdir $path;
+            my $curr_dir = $_;
+            print STDERR "... Working on directory ", $curr_dir, " ... \n";
+            chdir "$path_to_working_directory/$curr_dir";
+            my $command_string = "perl $path_to_amphora/Scripts/MarkerScanner.pl ".$options_string." $curr_dir\.fasta";
+            system($command_string);
+            #system("perl $path_to_amphora/Scripts/MarkerScanner.pl -DNA -Bacteria $_\.fasta");
+            #system("perl $path_to_amphora/Scripts/MarkerAlignTrim.pl -OutputFormat fasta");
+            chdir $path;
 	}
 }
 
 sub run_phyla_amphora {
-	print STDERR "Extracting Phyla-AMPHORA markers... \n";
-	foreach (@dirnames) {
-		print STDERR "... Working on directory ", $_, " ... \n";
-		chdir "$path_to_working_directory/$_";
-		if ( $NUMTHREADS > 1 ) {
-		system("perl $path_to_amphora/Scripts/MarkerScanner_souped.pl -DNA -Phylum $PHYLUM $_\.fasta --cpu $NUMTHREADS"); }
-		elsif ( $NUMTHREADS == 1 ) {
-		system("perl $path_to_amphora/Scripts/MarkerScanner.pl -DNA -Phylum $PHYLUM $_\.fasta"); }
-#		system("perl $path_to_amphora/Scripts/MarkerAlignTrim.pl -OutputFormat fasta");
-		chdir $path;
-	}
+    print STDERR "Extracting Phyla-AMPHORA markers... \n";
+    my @options;
+    if ($seqtype eq "DNA") {
+        push @options, "-DNA";
+    }
+    push @options, "-Phylum $PHYLUM";
+    my $options_string = join " ", @options;
+    foreach (@dirnames) {
+        my $curr_dir = $_;
+        print STDERR "... Working on directory ", $curr_dir, " ... \n";
+        chdir "$path_to_working_directory/$curr_dir";
+        if ( $NUMTHREADS > 1 ) {
+            my $command_string = "perl $path_to_amphora/Scripts/MarkerScanner_souped.pl ".$options_string." $curr_dir\.fasta --cpu $NUMTHREADS";
+            system($command_string);
+        } elsif ( $NUMTHREADS == 1 ) {
+            my $command_string = "perl $path_to_amphora/Scripts/MarkerScanner.pl ".$options_string." $curr_dir\.fasta";
+            system($command_string);
+            #system("perl $path_to_amphora/Scripts/MarkerAlignTrim.pl -OutputFormat fasta");
+        }
+        chdir $path;
+    }
 }
 
 sub run_metaxa {

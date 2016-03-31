@@ -1,5 +1,7 @@
 # SCRIPTS FOR AUTOMATED MULTI-GENE PHYLOGENIES
 
+[![DOI](https://zenodo.org/badge/10602/kbseah/phylogenomics-tools.svg)](https://zenodo.org/badge/latestdoi/10602/kbseah/phylogenomics-tools)
+
 Have a bunch of microbial genomes that you want to make a multi-gene tree with? 
 
 Daunted by the prospect of having to extract, align, and tree conserved marker genes?
@@ -28,7 +30,7 @@ Starting with genomic sequences in Fasta files, these scripts automate the proce
 
 ## 0. Before you start
 
-Retrieve genomes as Fasta files. Put all scaffolds into single multi-fasta file.
+Retrieve genomes as Fasta files. Put all scaffolds into single multi-fasta file. Default is for genomic nucleotide sequences, but amino acid sequences can also be supplied (see part 1 below).
 
 For each genome, specify a short name (10 characters or less, to be compatible with RAxML).
 
@@ -71,11 +73,15 @@ Then generates new directory per genome, renames fasta file and directory accord
 
 Uses AMPHORA2 by default to extract conserved markers from each genome. Use --phyla_amphora switch to use Phyla-AMPHORA instead.
 
-Regardless of which version, specify path to the AMPHORA2 or Phyla-AMPHORA directory (e.g. `/home/foobar/tools/AMPHORA2/`)
+Regardless of which version, specify path to the AMPHORA2 or Phyla-AMPHORA directory (e.g. `/home/foobar/tools/AMPHORA2/`).
 
-Calls the script MarkerScanner.pl for each genome given in RENAME_TABLE
+If using Phyla-AMPHORA, you can specify which phylum's marker set to use with the `--phylum` option (ignored if using AMPHORA2). If using AMPHORA2, you can use the Archaea marker set with the `--archaea` switch.
 
-If --16S switch is specified, also uses Metaxa to extract 16S sequences from each genome (preset to Bacterial mode - edit script if genomes are Archaea!)
+Calls the script MarkerScanner.pl for each genome given in RENAME_TABLE. By default it assumes the fasta files supplied are genomic nucleotide sequences.
+
+Use the option `--seqtype protein` if you have amino acid sequences instead of genomic nucleotide sequences.
+
+If `--16S` switch is specified, also uses Metaxa to extract 16S sequences from each genome (preset to Bacterial mode - edit script if genomes are Archaea!)
 
 ## 3. Make table of how many markers detected per genome
 
