@@ -170,15 +170,17 @@ sub generate_output {		# generates output to STDOUT
 		chdir "$path_to_new_files/$spname";
 			foreach my $marker(@markers) {
 				$counts_by_marker{"$marker"} = 0;	# set associative array counter to zero
-				open (MANFO, "< $marker\.pep") ;
-					my @contents = <MANFO>;
-					my @filtered = grep (/\>/,@contents);
-					my $thecount = scalar @filtered;
-					$counts_by_marker{"$marker"} = $thecount;
-	#				while (<MANFO>) {
-	#					if (/>/) {$counts_by_marker{"$marker"}++;}	# counts Fasta headers in marker .pep file to count instances of the gene
-	#				}
-				close(MANFO);
+                                if (-f "$marker\.pep") { # check that the file exists and is a plain file
+                                    open (MANFO, "< $marker\.pep") ;
+                                            my @contents = <MANFO>;
+                                            my @filtered = grep (/\>/,@contents);
+                                            my $thecount = scalar @filtered;
+                                            $counts_by_marker{"$marker"} = $thecount;
+            #				while (<MANFO>) {
+            #					if (/>/) {$counts_by_marker{"$marker"}++;}	# counts Fasta headers in marker .pep file to count instances of the gene
+            #				}
+                                    close(MANFO);
+                                }
 			}
 		my @counts_values;
 		foreach my $marker (sort keys %counts_by_marker) {
