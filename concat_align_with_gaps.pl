@@ -10,16 +10,16 @@ concat_alignments_with_gaps.pl - Concatenate Fasta alignments
 
 =head1 SYNOPSIS
 
-    perl concat_alignments_with_gaps.pl --file <filename_table> \
+    perl concat_align_with_gaps.pl --file <filename_table> \
                                         --markers <marker_table> \
                                         --wd <path to working folder> \
                                         --output <prefix for output files> \
                                         --model_select <find best AA substitution model with RAxML?>
                                         --threads <num threads for RAxML>
 
-    perl concat_alignments_with_gaps.pl --help [Full help message]
+    perl concat_align_with_gaps.pl --help [Full help message]
 
-    perl concat_alignments_with_gaps.pl --man [Manual page]
+    perl concat_align_with_gaps.pl --man [Manual page]
 
 
 =head1 DESCRIPTION
@@ -67,6 +67,10 @@ Default: 8
 =item --help|-h
 
 Full help message
+
+=item --mask
+
+Use alignment masks produced by Zorro
 
 =item --man|-m
 
@@ -127,7 +131,7 @@ GetOptions (
     "wd|w=s" => \$wdPath,
     "output|o=s" => \$outfix,
     "model_select|m" => \$model_choose,
-    "zorro|z" => \$use_mask,
+    "mask" => \$use_mask,
     "threads|t=i" => \$numThreads,
     'help|h'=> sub { pod2usage( -exitstatus => 2, -verbose => 2); },
     'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) },
@@ -330,21 +334,21 @@ sub write_concat_alignments {		# Concatenate the alignments into new alignment f
     close ($PARTITION);
 
     if ( $use_mask == 1 ) {
-        system ("cat $wdPath/$outfix.$markers[0]\.mask >> $wdPath/$outfix\.mask");
+        system ("cat $wdPath/$outfix.$markers[0]\.mask >> $wdPath/$outfix\.mask"); # TO DO fix the path
     } 
     
     for (my $x = 1; $x <= ($concat_len - 1); $x++){			# Iterate through the hash and recursively concatenate the alignments
         $concat_aln = cat($concat_aln, $concatHash{$markers[$x]});
         $genePos{$markers[$x]}= $concat_aln->length();	# store the end position of this marker gene in the alignment
         # Add the marker and its positions to the partitions file for later use with phylogenetic software
-        open (my $PARTITION, ">> $wdPath/$outfix\.partitions") || die ("Cannot write partitions file: $!");
+        open (my $PARTITION, ">>", $partitions_path) || die ("Cannot write partitions file: $!");
         if ( $model_choose == 0 ) {
             print $PARTITION join("", "WAG", ", " , $markers[$x], " = ", join("-",($genePos{$markers[$x-1]} + 1),$genePos{$markers[$x]}) ), "\n"; }
         elsif ( $model_choose == 1 ) {
             print $PARTITION join("", $best_model_choice{$markers[$x]}, ", " , $markers[$x], " = ", join("-",($genePos{$markers[$x-1]} + 1),$genePos{$markers[$x]}) ), "\n"; }
         close ($PARTITION);
         if ( $use_mask == 1 ) {
-            system ("cat $wdPath/$outfix.$markers[$x]\.mask >> $wdPath/$outfix\.mask");
+            system ("cat $wdPath/$outfix.$markers[$x]\.mask >> $wdPath/$outfix\.mask"); # TO DO Fix the path
         } 
     }
 }
