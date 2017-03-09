@@ -190,7 +190,7 @@ sub read_rename_table {
 			chomp $text;
 			(my $origfile, my $newfile) = split(/\t/, $text);
 			$newfile =~ s/(\w*)\W*/$1/ge;
-			push(@dirnames, $newfile);
+			push(@dirnames, $newfile) unless ($text =~ m/^#/); # Ignore lines that are commented-out
 		}
 	close(INFO);
 }
