@@ -95,13 +95,16 @@ If `--16S` switch is specified, also uses Metaxa to extract 16S sequences from e
 
 The results are in two tab-separated tables: counts_table_protein and counts_table_rna for protein marker genes and 16S markers respectively.
 
-Inspect the tables to choose which markers to use for phylogenetic analysis.
+Inspect the tables to choose which markers to use for phylogenetic analysis, and also to remove genomes that are of poor quality. Many missing genes may indicate that genomes are incomplete, or evolutionarily reduced. Many duplicated genes may indicate mixed-strain genome assemblies, or errors introduced during the DNA sequencing process. Incomplete genomes with uneven duplication are common in single-cell MDA products, for example.
 
-IMPORTANT: For 16S, if there is more than 1 16S sequence in a given genome, you will have to manually edit the 16S.fasta file to have only 1 paralog!
-
+IMPORTANT: If there is more than one sequence for a given marker in a genome, you should either
+ * Not include that marker for your analysis
+ * Not include that genome in your analysis
+ * Manually inspect the Fasta file to see which sequence is the "correct" one. For example, short hypothetical proteins or fragmentary ORFs may sometimes be mis-predicted as a marker, or the ORF for a given marker gene may be split into two fragments. In these cases you should manually edit the Fasta file to have only one sequence
+ 
 Draft genomes may contain incomplete 16S genes - check the 16S.graph file for each species to see if all the conserved regions (V1 to V9) are present; choose the sequence that has the most regions covered.
 
-For the moment, select only columns which are all '1'. Can use the script counts_table_checker.pl to make a list of single-copy genes
+Use the script `counts_table_checker.pl` to make a list of genes that are present in all genomes and only in single copy. Bear in mind that the more genomes you add to your analysis, the fewer will meet this criteria because of missing data, misprediction, etc.
 
 In future, intend to implement new scripts which can deal with missing genes. 
 
@@ -112,7 +115,7 @@ Make a plain text list of marker names to be used for subsequent phylogenetic an
 ```
  $ perl repackage_fasta.pl \ 
          --file GENOME_RENAME_TABLE \          
-         --markers MARKER_TABLE \ 
+         --markers ANALYSIS_MARKERS \ 
 	 --16S [Also make 16S alignment?] \
 	 --mask [Mask alignment with Zorro?] \
          --wd WORKING_FOLDER 
@@ -120,7 +123,7 @@ Make a plain text list of marker names to be used for subsequent phylogenetic an
 
 Creates a new folder called "alignments" in working folder.
 
-For each marker gene listed in `ANALYSIS_MARKERS`, creates a multi-Fasta file containing that marker sequence from each species. 
+For each marker gene listed in `ANALYSIS_MARKERS`, creates a multi-Fasta file containing that marker sequence from each species. If a given species is missing a marker, they will be skipped. When concatenating the alignment, they will be replaced by gap characters.
 
 Optional: Also create 16S alignment
 
