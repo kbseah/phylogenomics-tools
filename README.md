@@ -210,6 +210,8 @@ All the output tree files are in the folder /trees in the working directory.
 
 Petersen et al. 2016. [Nature Microbiology 2: 16195.](http://www.nature.com/articles/nmicrobiol2016195)
 
+Rubin-Blum et al. 2017. [Nature Microbiology 2: 17093.](http://http://www.nature.com/articles/nmicrobiol201793)
+
 Drop me a message if you have used these scripts and would like to add your publication to this list!
 
 ## Citing these tools
