@@ -72,7 +72,7 @@ Full help message
 
 Use alignment masks produced by Zorro
 
-=item --man|-m
+=item --man
 
 Manual page
 
@@ -134,7 +134,7 @@ GetOptions (
     "mask" => \$use_mask,
     "threads|t=i" => \$numThreads,
     'help|h'=> sub { pod2usage( -exitstatus => 2, -verbose => 2); },
-    'man|m'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) },
+    'man'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) },
 );
 
 if (!defined $alnTableFile|| !defined $speciesTableFile) {
@@ -215,6 +215,8 @@ my $concat_phylip_path = File::Spec->catfile($wdPath,"alignments","$outfix.conca
 my $concat_fasta= Bio::AlignIO->new(-file=>">$concat_fasta_path",-format=>'fasta');	# define the Multifasta output file
 my $concat_phylip = Bio::AlignIO->new(-file=>">$concat_phylip_path",-format=>'phylip');	# define the Phylip output file
 write_concat_alignments();
+
+$concat_aln->set_displayname_flat; # Remove sequence position numbers from display names
 
 $concat_fasta->write_aln($concat_aln);
 $concat_phylip->write_aln($concat_aln);
