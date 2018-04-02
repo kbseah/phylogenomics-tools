@@ -10,7 +10,7 @@ repackage_fasta.pl - Reorganize Fasta files by marker gene
                             --wd <working directory> \
                             --markers <marker_table> \
                             --mask
-    
+
     perl repackage_fasta.pl --help
 
 =head1 DESCRIPTION
@@ -97,14 +97,13 @@ my $include_16S =0;
 
 if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 
-GetOptions (
-	"file=s" => \$species_file,
-	"markers=s" => \$marker_file,
-	"wd=s" => \$path_to_wd,
-	"mask" => \$use_mask,
-	"16S" => \$include_16S,
-        "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
-        ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
+GetOptions ("file=s" => \$species_file,
+            "markers=s" => \$marker_file,
+            "wd=s" => \$path_to_wd,
+            "mask" => \$use_mask,
+            "16S" => \$include_16S,
+            "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
+            ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 
 read_shortnames();
 read_marker_names();
@@ -126,7 +125,8 @@ sub read_shortnames { # Read list of species shortnames
     close (INFO);
 }
 
-sub read_marker_names { # Read list of marker genes for extraction 
+sub read_marker_names {
+    # Read list of marker genes for extraction
     open (INFO, "< $marker_file") || die ("Cannot open list of marker genes: $!");
         while (<INFO>) {
             chomp;
@@ -135,8 +135,10 @@ sub read_marker_names { # Read list of marker genes for extraction
     close (INFO);
 }
 
-sub call_Muscle { # Perform alignment using MUSCLE and mask with Zorro
-    foreach my $marker (@markers) { # For each marker gene, concatenate all sequences to one multi-fasta file
+sub call_Muscle {
+    # Perform alignment using MUSCLE and mask with Zorro
+    foreach my $marker (@markers) {
+        # For each marker gene, concatenate all sequences to one multi-fasta file
         my $marker_cat_file_path = File::Spec->catfile($path_to_wd, "alignments", "$marker.cat.pep");
         my $marker_aln_file_path = File::Spec->catfile($path_to_wd, "alignments", "$marker.cat.aln");
         system("cat /dev/null > $marker_cat_file_path");
@@ -145,12 +147,12 @@ sub call_Muscle { # Perform alignment using MUSCLE and mask with Zorro
             my $sp_marker_path = File::Spec->catfile($path_to_wd,$species,"$marker.pep");
             if (-f $sp_marker_path) {
                 open (my $origfile, "<", $sp_marker_path) || die ("Cannot open .pep file for reading $sp_marker_path : $!");
-                    while (<$origfile>) {
-                        my $newheader;
-                        if ($_ =~ /\>.*/) {$newheader = $species;}
-                        s/(\>).*/$1.$newheader/e;
-                        print $catfile $_;
-                    }
+                while (<$origfile>) {
+                    my $newheader;
+                    if ($_ =~ /\>.*/) {$newheader = $species;}
+                    s/(\>).*/$1.$newheader/e;
+                    print $catfile $_;
+                }
                 close ($origfile);
             } else {
                 print STDERR "Marker file for marker $marker in species $species not found, skipping \n";
@@ -164,7 +166,7 @@ sub call_Muscle { # Perform alignment using MUSCLE and mask with Zorro
         system("muscle -in $marker_cat_file_path -out $marker_aln_file_path");
         print STDERR "Alignment complete for marker ", $marker, "\n";
         if ( $use_mask == 1 ) {
-            # Call Zorro to mask alignment 
+            # Call Zorro to mask alignment
             print STDERR "***************************\n";
             print STDERR "Calling Zorro to mask alignment by confidence for $marker \n";
             my $marker_cat_mask_raw_path = File::Spec->catfile($path_to_wd, "alignments", "$marker.cat.mask_raw");
@@ -174,10 +176,10 @@ sub call_Muscle { # Perform alignment using MUSCLE and mask with Zorro
                                                     # Reformat mask to suitable input format for RAxML
             open (MASKRAW, "<", $marker_cat_mask_raw_path) || die ("Cannot open mask_raw file for reformatting: $!");
             open (MASKNEW, ">", $marker_cat_mask_path) || die ("Cannot open file to write new alignment mask: $!");
-                while (<MASKRAW>) {
-                    my $rounded = int($_ + 0.5);
-                    print MASKNEW "$rounded ";
-                }
+            while (<MASKRAW>) {
+                my $rounded = int($_ + 0.5);
+                print MASKNEW "$rounded ";
+            }
             close (MASKNEW);
             close (MASKRAW);
         } else {}
@@ -188,25 +190,25 @@ sub align_16S {
     my $rrn_cat_path = File::Spec->catfile($path_to_wd, "alignments", "16S.cat.fasta");
     system ("cat /dev/null > $rrn_cat_path");
     open (my $catfile, ">>", $rrn_cat_path) || die ("Cannot open file to write multifasta: $!");
-    foreach my $species (@shortnames) {	# create concatenated 16S fasta file
+    foreach my $species (@shortnames) {    # create concatenated 16S fasta file
         my $overcount = 0;
         my $rrn_orig_path = File::Spec->catfile($path_to_wd,$species,"16S.fasta");
         if (-f $rrn_orig_path) {
             open (my $origfile, "<", $rrn_orig_path) || die ("Cannot open .fasta file to read: $!");
-                while (<$origfile>) {
-                    my $newheader;
-                    if ($_ =~ /\>.*/) {
-                        $newheader = $species;
-                        $overcount = $overcount + 1;
-                    }
-                    if ($overcount > 1) { 
-                        print STDERR "There is more than one 16S sequence for species $species \n";
-                        print STDERR "Exiting... \n";
-                        exit;
-                    }
-                    s/(\>).*/$1.$newheader/e;
-                    print $catfile $_;
+            while (<$origfile>) {
+                my $newheader;
+                if ($_ =~ /\>.*/) {
+                    $newheader = $species;
+                    $overcount = $overcount + 1;
                 }
+                if ($overcount > 1) {
+                    print STDERR "There is more than one 16S sequence for species $species \n";
+                    print STDERR "Exiting... \n";
+                    exit;
+                }
+                s/(\>).*/$1.$newheader/e;
+                print $catfile $_;
+            }
             close ($origfile);
         } else {
             print STDERR "Marker file for 16S rRNA not found for species $species, skipping... \n";

@@ -155,12 +155,12 @@ for my $marker (@markers) {
                                -format=>"fasta"
                                );
     my $aln = $in->next_aln();
-    
+
     # Make dummy sequence matching alignment length
     my $alnLen = $aln->length();
     my $dummyseq = "-" x $alnLen;
     my $alphabet;
-    
+
     # Check which species are in this alignment
     foreach my $seq ($aln->each_seq()) {
         my $theid = $seq->id();
@@ -172,13 +172,13 @@ for my $marker (@markers) {
             $aln->remove_seq($seq);
         }
     }
-    
+
     # Write alignment to phylip format for RAxML model testing
     my $outfile_path = File::Spec->catfile($wdPath,"alignments","$outfix.$marker.phy");
     my $outfile = Bio::AlignIO->new(-file=>">$outfile_path",
                                     -format=>"phylip");
     $outfile -> write_aln($aln);
-    
+
     # For species that are absent from this alignment, make dummy sequence
     # comprising gap characters
     foreach my $species (keys %speciesTable) {
@@ -195,7 +195,7 @@ for my $marker (@markers) {
 
     # Add alignment with dummies to hash
     $concatHash{$marker} = $aln;
-    
+
     # Reset counter for species presence/absence
     foreach my $species (keys %speciesTable) {
         $speciesTable{$species} = 0;
@@ -212,8 +212,8 @@ if ($model_choose == 1) {
 
 my $concat_fasta_path = File::Spec->catfile($wdPath,"alignments","$outfix.concat.fasta");
 my $concat_phylip_path = File::Spec->catfile($wdPath,"alignments","$outfix.concat.phy");
-my $concat_fasta= Bio::AlignIO->new(-file=>">$concat_fasta_path",-format=>'fasta');	# define the Multifasta output file
-my $concat_phylip = Bio::AlignIO->new(-file=>">$concat_phylip_path",-format=>'phylip');	# define the Phylip output file
+my $concat_fasta= Bio::AlignIO->new(-file=>">$concat_fasta_path",-format=>'fasta');        # define the Multifasta output file
+my $concat_phylip = Bio::AlignIO->new(-file=>">$concat_phylip_path",-format=>'phylip');        # define the Phylip output file
 write_concat_alignments();
 
 $concat_aln->set_displayname_flat; # Remove sequence position numbers from display names
@@ -227,7 +227,7 @@ sub read_markers {
     open(IN, "<", $alnTableFile) or die ("$!\n");
     while (my $marker = <IN>) {
         chomp $marker;
-	my $marker_cat_path = File::Spec->catfile($wdPath,"alignments","$marker.cat.aln");
+        my $marker_cat_path = File::Spec->catfile($wdPath,"alignments","$marker.cat.aln");
         # Column 1 - filename; Column 2 - marker name
         $alnTable{$marker} = $marker_cat_path;
     }
@@ -238,7 +238,7 @@ sub read_specieslist {
     open(IN, "<", $speciesTableFile) or die ("$!\n");
     while (<IN>) {
         chomp;
-	my @splitline = split "\t";
+        my @splitline = split "\t";
         $speciesTable{$splitline[1]} = 0;
     }
     close(IN);
@@ -246,14 +246,14 @@ sub read_specieslist {
 
 sub getLH {
     # Subroutine required for model test script by Alexis Stamatakis
-    my $fileID = $_[0];  
+    my $fileID = $_[0];
     open(CPF, $fileID);
-    my @lines = <CPF>;	
-    close(CPF);	
-    my $numIT = @lines;   	
-    my $lastLH = pop(@lines);  
-    my $k = index($lastLH, '-');   
-    my $LH = substr($lastLH, $k);     
+    my @lines = <CPF>;
+    close(CPF);
+    my $numIT = @lines;
+    my $lastLH = pop(@lines);
+    my $k = index($lastLH, '-');
+    my $LH = substr($lastLH, $k);
     return $LH;
 }
 
@@ -263,33 +263,33 @@ sub choose_prot_model {
     my $UNLIKELY = -1.0E300;
     my @lh;
 
-    my @AA_Models = ("DAYHOFF", "DCMUT", "JTT", "MTREV", "WAG", "RTREV", "CPREV", "VT", "BLOSUM62", "MTMAM", 
+    my @AA_Models = ("DAYHOFF", "DCMUT", "JTT", "MTREV", "WAG", "RTREV", "CPREV", "VT", "BLOSUM62", "MTMAM",
         "LG", "MTART", "MTZOA", "PMB", "HIVB", "HIVW", "JTTDCMUT", "FLU",
-        "DAYHOFFF", "DCMUTF", "JTTF", "MTREVF", "WAGF", "RTREVF", "CPREVF", "VTF", "BLOSUM62F", 
+        "DAYHOFFF", "DCMUTF", "JTTF", "MTREVF", "WAGF", "RTREVF", "CPREVF", "VTF", "BLOSUM62F",
         "MTMAMF", "LGF", "MTARTF", "MTZOAF", "PMBF", "HIVBF", "HIVWF", "JTTDCMUTF", "FLUF");
     #print "Determining AA model data\n";
     #print "Computing randomized stepwise addition starting tree number :".$i."\n";
     my $ali_path = File::Spec->catfile($wdPath,"alignments","$outfix.$alignmentName.phy");
     my @cmd_arr = ($raxmlExecutable,
-		   "-T $numThreads",
-		   "-y -p 12345",
-		   "-m PROTCATJTT",
-		   "-s $ali_path",
-		   "-n ST_$alignmentName",
-		   "\> ST_$alignmentName\_out");
+                   "-T $numThreads",
+                   "-y -p 12345",
+                   "-m PROTCATJTT",
+                   "-s $ali_path",
+                   "-n ST_$alignmentName",
+                   "\> ST_$alignmentName\_out");
     my $cmd = join " ", @cmd_arr;
     system($cmd);
     my $numberOfModels = @AA_Models;
     for(my $i = 0; $i < $numberOfModels; $i++) {
         my $aa = "PROTGAMMA".$AA_Models[$i];
-	my @cmd2_arr = ($raxmlExecutable,
-			"-T $numThreads",
-			"-f e",
-			"-m $aa",
-			"-s $ali_path",
-			"-t RAxML_parsimonyTree.ST_$alignmentName",
-			"-n $AA_Models[$i]_$alignmentName\_EVAL",
-			"\> $AA_Models[$i]_$alignmentName\_EVAL.out");
+        my @cmd2_arr = ($raxmlExecutable,
+                        "-T $numThreads",
+                        "-f e",
+                        "-m $aa",
+                        "-s $ali_path",
+                        "-t RAxML_parsimonyTree.ST_$alignmentName",
+                        "-n $AA_Models[$i]_$alignmentName\_EVAL",
+                        "\> $AA_Models[$i]_$alignmentName\_EVAL.out");
         my $cmd2 = join " ", @cmd2_arr;
         system($cmd2);
     }
@@ -309,23 +309,27 @@ sub choose_prot_model {
         }
     }
 
-    $best_model_choice{$alignmentName} = $AA_Models[$bestI];	# Write best model chosen to the hash of best model choices
-    
+    $best_model_choice{$alignmentName} = $AA_Models[$bestI];        # Write best model chosen to the hash of best model choices
+
     # cleanup RAxML files
     my $cleanupcmd = "rm $wdPath/RAxML\*$alignmentName\_EVAL $wdPath/RAxML\*\_$alignmentName $wdPath/\*EVAL.out $wdPath/ST_\*out";
     system ($cleanupcmd);
 }
 
-sub model_choice_wrapper {		# Wrapper routine to perform model test for each marker gene in the list
+sub model_choice_wrapper {
+    # Wrapper routine to perform model test for each marker gene in the list
     foreach my $marker (@markers) {
-	choose_prot_model($marker);
+        choose_prot_model($marker);
     }
 }
 
-sub write_concat_alignments {		# Concatenate the alignments into new alignment file
-    $concat_aln = cat($concatHash{$markers[0]});			# Can't recursively cat on empty string, so must start from first element
+sub write_concat_alignments {
+    # Concatenate the alignments into new alignment file
+
+    # Can't recursively cat on empty string, so must start from first element
+    $concat_aln = cat($concatHash{$markers[0]});
     $genePos{$markers[0]}= $concat_aln->length();
-    
+
     # Initialize a file to contain the list of marker genes and their positions in the alignment
     my $partitions_path = File::Spec->catfile($wdPath,"alignments","$outfix.partitions");
     open (my $PARTITION, ">", $partitions_path) || die ("Cannot write partitions file: $!");
@@ -337,11 +341,13 @@ sub write_concat_alignments {		# Concatenate the alignments into new alignment f
 
     if ( $use_mask == 1 ) {
         system ("cat $wdPath/$outfix.$markers[0]\.mask >> $wdPath/$outfix\.mask"); # TO DO fix the path
-    } 
-    
-    for (my $x = 1; $x <= ($concat_len - 1); $x++){			# Iterate through the hash and recursively concatenate the alignments
+    }
+
+    for (my $x = 1; $x <= ($concat_len - 1); $x++){
+        # Iterate through the hash and recursively concatenate the alignments
         $concat_aln = cat($concat_aln, $concatHash{$markers[$x]});
-        $genePos{$markers[$x]}= $concat_aln->length();	# store the end position of this marker gene in the alignment
+        # store the end position of this marker gene in the alignment
+        $genePos{$markers[$x]}= $concat_aln->length();
         # Add the marker and its positions to the partitions file for later use with phylogenetic software
         open (my $PARTITION, ">>", $partitions_path) || die ("Cannot write partitions file: $!");
         if ( $model_choose == 0 ) {
@@ -351,6 +357,6 @@ sub write_concat_alignments {		# Concatenate the alignments into new alignment f
         close ($PARTITION);
         if ( $use_mask == 1 ) {
             system ("cat $wdPath/$outfix.$markers[$x]\.mask >> $wdPath/$outfix\.mask"); # TO DO Fix the path
-        } 
+        }
     }
 }

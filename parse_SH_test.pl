@@ -35,11 +35,10 @@ my $NUMTHREADS = 4;
 
 if ( !@ARGV ) { usage(); }
 
-GetOptions (
-	"markers=s" => \$marker_file,
-	"wd=s" => \$path_to_wd,
-	"concat_aln=s" => \$concat_aln_file,
-	"numthreads=s" => \$NUMTHREADS,
+GetOptions ("markers=s" => \$marker_file,
+            "wd=s" => \$path_to_wd,
+            "concat_aln=s" => \$concat_aln_file,
+            "numthreads=s" => \$NUMTHREADS,
 ) or usage();
 
 ### Main code block ###
@@ -61,66 +60,69 @@ print STDERR "*** Happy Happy Joy Joy *** \n";
 ### Subroutines ###
 
 sub usage {                     # print usage statement
-        print STDERR "******************************************************* \n";
-        print STDERR "Infer trees and perform SH likelihood tests on pairs \n";
-	print STDERR "Cite: RAxML, SH-test papers \n";
-        print STDERR "KBS 2013-11-13 \n";
-        print STDERR "Usage: perl tree_calculations.pl \\ \n";
-        print STDERR "\t --markers MARKER_TABLE \\ \n";
-        print STDERR "\t --wd WORKING_FOLDER \n";
-	print STDERR "\t --concat_aln NAME_OF_CONCATENATED_ALIGNMENT_FILE \\ \n";
-	print STDERR "\t --numthreads NUMBER_OF_RAXML_THREADS (at least 2!)  \n";
-        print STDERR "******************************************************* \n";
-        exit;
+    print STDERR "******************************************************* \n";
+    print STDERR "Infer trees and perform SH likelihood tests on pairs \n";
+    print STDERR "Cite: RAxML, SH-test papers \n";
+    print STDERR "KBS 2013-11-13 \n";
+    print STDERR "Usage: perl tree_calculations.pl \\ \n";
+    print STDERR "\t --markers MARKER_TABLE \\ \n";
+    print STDERR "\t --wd WORKING_FOLDER \n";
+    print STDERR "\t --concat_aln NAME_OF_CONCATENATED_ALIGNMENT_FILE \\ \n";
+    print STDERR "\t --numthreads NUMBER_OF_RAXML_THREADS (at least 2!)  \n";
+    print STDERR "******************************************************* \n";
+    exit;
 }
 
-sub read_marker_names {			# Read list of marker genes for extraction 
-	open (INFO, "< $marker_file") || die ("Cannot open list of marker genes: $!");
-		while (<INFO>) {
-			chomp;
-			push (@markers, $_);
-		}
-	close (INFO);
+sub read_marker_names {
+    # Read list of marker genes for extraction
+    open (INFO, "< $marker_file") or die ("Cannot open list of marker genes: $!");
+        while (<INFO>) {
+            chomp;
+            push (@markers, $_);
+        }
+    close (INFO);
 }
 
-
-
-sub parse_SH_output {			# Parse SH test output from RAxML output files to a summary file 
-## TODO: Parse output into a table
-	system ("cat /dev/null > $path_to_wd/trees/SH_TEST_OUTPUT");
-	print STDERR "Copying SH test results to file $path_to_wd/trees/SH_TEST_OUTPUT \n";
-	foreach my $marker (@markers) {
-		open (my $INPUT, "< $path_to_wd/trees/RAxML_info\.$marker\_SH_test") or die ("Cannot open RAxML SH test result file: $!");
-		my @data = <$INPUT>;
-		close ($INPUT);
-		my $totallines = scalar @data;
-		my $totallines2 = $totallines - 1;
-		my $totallines3 = $totallines - 2;
-		open (my $OUTPUT, ">> $path_to_wd/trees/SH_TEST_OUTPUT");
-		print $OUTPUT "gene: $marker \n";
-		print $OUTPUT "$data[$totallines3]";
-		print $OUTPUT "$data[$totallines2]\n";
-		close ($OUTPUT);
-	}
+sub parse_SH_output {
+    # Parse SH test output from RAxML output files to a summary file
+    ## TODO: Parse output into a table
+    system ("cat /dev/null > $path_to_wd/trees/SH_TEST_OUTPUT");
+    print STDERR "Copying SH test results to file $path_to_wd/trees/SH_TEST_OUTPUT \n";
+    foreach my $marker (@markers) {
+        open (my $INPUT, "< $path_to_wd/trees/RAxML_info\.$marker\_SH_test") or die ("Cannot open RAxML SH test result file: $!");
+        my @data = <$INPUT>;
+        close ($INPUT);
+        my $totallines = scalar @data;
+        my $totallines2 = $totallines - 1;
+        my $totallines3 = $totallines - 2;
+        open (my $OUTPUT, ">> $path_to_wd/trees/SH_TEST_OUTPUT");
+        print $OUTPUT "gene: $marker \n";
+        print $OUTPUT "$data[$totallines3]";
+        print $OUTPUT "$data[$totallines2]\n";
+        close ($OUTPUT);
+    }
 }
 
-sub draw_gene_tree_bipartitions {	# Writes the % of bipartitions found on set of all indiv gene trees onto the concat tree, much like a bootstrap %
-	chdir "$path_to_wd/trees";
-	system ("cat *bestTree.*besttree > gene_trees_allset");		# Concatenate all indiv gene trees into single tree file
-	print STDERR "Writing bipartitions found in individual gene trees to concatenated alignment tree... \n";
-	system ("raxmlHPC-PTHREADS -T $NUMTHREADS -m PROTGAMMAWAG -s ../alignments/$concat_aln_file -n bipartitions_write -t RAxML_bestTree.concat_unpart -z gene_trees_allset -f b &> /dev/null");
-	print STDERR "Bipartition writing done \n";
-	print STDERR "************************************************** \n";
-	chdir "$path";
+sub draw_gene_tree_bipartitions {
+    # Writes the % of bipartitions found on set of all indiv gene trees onto the concat tree, much like a bootstrap %
+    chdir "$path_to_wd/trees";
+    # Concatenate all indiv gene trees into single tree file
+    system ("cat *bestTree.*besttree > gene_trees_allset");
+    print STDERR "Writing bipartitions found in individual gene trees to concatenated alignment tree... \n";
+    system ("raxmlHPC-PTHREADS -T $NUMTHREADS -m PROTGAMMAWAG -s ../alignments/$concat_aln_file -n bipartitions_write -t RAxML_bestTree.concat_unpart -z gene_trees_allset -f b &> /dev/null");
+    print STDERR "Bipartition writing done \n";
+    print STDERR "************************************************** \n";
+    chdir "$path";
 }
 
-sub draw_consensus_tree {		# Draws an MRE consensus tree based on the individual gene trees
-	chdir "$path_to_wd/trees";
-	print STDERR "Calculating MRE consensus from gene trees...";
-	system ("cat *bestTree.*besttree > gene_trees_allset");
-	system ("raxmlHPC-PTHREADS -T $NUMTHREADS -m PROTGAMMAWAG -n consMRE -s ../alignments/concatenated.phy -J MRE -z gene_trees_allset &> /dev/null");
-	print STDERR "MRE consensus calculated from individual gene trees \n";
-	print STDERR "*************************************************** \n";
-	chdir "$path";
+sub draw_consensus_tree {
+    # Draws an MRE consensus tree based on the individual gene trees
+    chdir "$path_to_wd/trees";
+    print STDERR "Calculating MRE consensus from gene trees...";
+    system ("cat *bestTree.*besttree > gene_trees_allset");
+    system ("raxmlHPC-PTHREADS -T $NUMTHREADS -m PROTGAMMAWAG -n consMRE -s ../alignments/concatenated.phy -J MRE -z gene_trees_allset &> /dev/null");
+    print STDERR "MRE consensus calculated from individual gene trees \n";
+    print STDERR "*************************************************** \n";
+    chdir "$path";
 
 }
