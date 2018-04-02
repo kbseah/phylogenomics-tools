@@ -106,8 +106,6 @@ Draft genomes may contain incomplete 16S genes - check the 16S.graph file for ea
 
 Use the script `counts_table_checker.pl` to make a list of genes that are present in all genomes and only in single copy. Bear in mind that the more genomes you add to your analysis, the fewer will meet this criteria because of missing data, misprediction, etc.
 
-In future, intend to implement new scripts which can deal with missing genes.
-
 Make a plain text list of marker names to be used for subsequent phylogenetic analysis: ANALYSIS_MARKERS
 
 ## 4. Reorganize the Fasta files by marker gene
@@ -153,7 +151,7 @@ At this point, you'll want to have a look at the alignments for each marker, rem
 
 This produces the following files in the `WORKING_FOLDER/alignments` folder:
  * `PREFIX.concat.fasta` Concatenated alignment in Fasta format
- * `PREFIX.concat.phy` Concatenated alignment in Phylip format
+ * `PREFIX.concat.phy` Concatenated alignment in Phylip format (if `--phylip` option is used)
  * `PREFIX.partitions` File listing alignment positions corresponding to each marker (for partitioned phylogenetic analysis, for example)
  * Individual alignment files for each marker in Phylip format, with `PREFIX` in the filename
 
@@ -167,7 +165,7 @@ Use the --mask switch if you want to include the alignment masking data produced
 A quick tree calculation can be performed with FastTree, which is useful e.g. to spot long-branching taxa, possible complications, before performing a full analysis with more sophisticated evolutionary models. In cases where alignments are very large, FastTree may be the most feasible option computationally.
 
 ```bash
-fasttree < PREFIX.concat.phy > PREFIX.concat.fasttree
+fasttree < PREFIX.concat.fasta > PREFIX.concat.fasttree
 ```
 
 
@@ -176,7 +174,7 @@ Alternatively, you could use RAxML for phylogenetic tree inference, because it o
 A. RAxML tree of the entire alignment as a single partition, using PROTCATWAG model for tree search, PROTGAMMAWAG model for optimization, find best tree from 10 randomized starting trees
 
 ```bash
-raxmlHPC-PTHREADS -T 4 -m PROTCATWAG -s ./alignments/concatenated.aln.phy -n concat_unpart -N 10 -p 12345
+raxmlHPC-PTHREADS -T 4 -m PROTCATWAG -s ./alignments/concatenated.aln.fasta -n concat_unpart -N 10 -p 12345
 ```
 
 Strip the best tree result of branch lengths to get only topology -> concat_constraint
@@ -184,13 +182,13 @@ Strip the best tree result of branch lengths to get only topology -> concat_cons
 B. RAxML best trees for each gene, single partition using PROTCATWAG model for tree search, PROTGAMMAWAG model for optimization
 
 ```bash
-raxmlHPC-PTHREADS -T 4 -m PROTCATWAG -s ./alignments/$marker.cat.phy -n $marker_besttree -N 10 -p 12345
+raxmlHPC-PTHREADS -T 4 -m PROTCATWAG -s ./alignments/$marker.cat.fasta -n $marker_besttree -N 10 -p 12345
 ```
 
 C. Perform SH-test for each gene's best tree and constraint tree:
 
 ```bash
-raxmlHPC-PTHREADS -T 4 -m PROTGAMMAWAG -s ./alignments/$marker.cat.phy -n $marker_SH_test -t RAxML_bestTree.$marker_besttree -z concat_constraint -f H
+raxmlHPC-PTHREADS -T 4 -m PROTGAMMAWAG -s ./alignments/$marker.cat.fasta -n $marker_SH_test -t RAxML_bestTree.$marker_besttree -z concat_constraint -f H
 ```
 
 These (and more) automated by the script:

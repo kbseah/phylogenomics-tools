@@ -76,6 +76,15 @@ Use alignment masks produced by Zorro
 
 Manual page
 
+=item --phylip
+
+Output alignments in phylip format too (Default: No)
+
+This is not turned on by default, as Phylip files have a limit on sequence name
+lengths, and longer names will be truncated in the Phylip output. If your
+sequence names are <= 10 characters then you can safely use phylip alignment
+files. However, both RAxML and Fasttree both accept Fasta input files.
+
 =back
 
 =head1 COPYRIGHT AND LICENSE
@@ -124,6 +133,7 @@ my %best_model_choice;
 my $model_choose = 0;
 my $use_mask = 0;
 my $concat_len;
+my $phylip;
 
 pod2usage(-verbose=>1) if (!@ARGV);
 
@@ -134,6 +144,7 @@ GetOptions ("file|f=s" => \$speciesTableFile,
             "model_select|m" => \$model_choose,
             "mask" => \$use_mask,
             "threads|t=i" => \$numThreads,
+            "phylip" => \$phylip,
             'help|h'=> sub { pod2usage( -exitstatus => 2, -verbose => 1); },
             'man'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) },
             ) or pod2usage(-verbose=>0);
@@ -173,11 +184,13 @@ for my $marker (@markers) {
         }
     }
 
-    # Write alignment to phylip format for RAxML model testing
-    my $outfile_path = File::Spec->catfile($wdPath,"alignments","$outfix.$marker.phy");
-    my $outfile = Bio::AlignIO->new(-file=>">$outfile_path",
-                                    -format=>"phylip");
-    $outfile -> write_aln($aln);
+    # Write individual gene alignments to phylip format for RAxML model testing
+    if (defined $model_choose) {
+        my $outfile_path = File::Spec->catfile($wdPath,"alignments","$outfix.$marker.phy");
+        my $outfile = Bio::AlignIO->new(-file=>">$outfile_path",
+                                        -format=>"phylip");
+        $outfile -> write_aln($aln);
+    }
 
     # For species that are absent from this alignment, make dummy sequence
     # comprising gap characters
@@ -210,16 +223,20 @@ if ($model_choose == 1) {
     }
 }
 
+# Paths for output files
 my $concat_fasta_path = File::Spec->catfile($wdPath,"alignments","$outfix.concat.fasta");
-my $concat_phylip_path = File::Spec->catfile($wdPath,"alignments","$outfix.concat.phy");
-my $concat_fasta= Bio::AlignIO->new(-file=>">$concat_fasta_path",-format=>'fasta');        # define the Multifasta output file
-my $concat_phylip = Bio::AlignIO->new(-file=>">$concat_phylip_path",-format=>'phylip');        # define the Phylip output file
+my $concat_phylip_path = File::Spec->catfile($wdPath,"alignments","$outfix.concat.phy") if $phylip;
+
+# BioPerl handles for outupt files
+my $concat_fasta= Bio::AlignIO->new(-file=>">$concat_fasta_path",-format=>'fasta');
+my $concat_phylip = Bio::AlignIO->new(-file=>">$concat_phylip_path",-format=>'phylip') if $phylip;
 write_concat_alignments();
 
 $concat_aln->set_displayname_flat; # Remove sequence position numbers from display names
 
+# Write alignments to output files
 $concat_fasta->write_aln($concat_aln);
-$concat_phylip->write_aln($concat_aln);
+$concat_phylip->write_aln($concat_aln) if $phylip;
 
 ## SUBS ########################################################################
 
