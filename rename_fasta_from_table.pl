@@ -98,23 +98,14 @@ GetOptions ("file=s" => \$rename_table,
             "wd=s" => \$path_to_new_files,
             "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
             ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
+
+## MAIN ########################################################################
 read_rename_table();
 check_for_duplicate_shortnames();
 rename_fasta_files();
 print "*** Job done *** \n";
 
-sub usage {
-    # print usage statement
-    print "******************************************************* \n";
-    print "Rename fasta files by shortnames for further processing \n";
-    print "KBS 2013-11-08 \n";
-    print "Usage: perl rename_fasta_from_table.pl \\ \n";
-    print "\t --file RENAME_TABLE \\ \n";
-    print "\t --orig PATH_TO_ORIGINAL_FILES \\ \n";
-    print "\t --wd NEW_WORKING_FOLDER \n";
-    print "******************************************************* \n";
-    exit;
-}
+## SUBS ########################################################################
 
 sub read_rename_table {
     # read rename_table file into rename_hash

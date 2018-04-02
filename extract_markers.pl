@@ -117,7 +117,6 @@ my @dirnames;    # array to hold genome shortnames
 my $NUMTHREADS = 1;
 
 ### Get options
-
 if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 GetOptions (
     "file=s" => \$rename_table,
@@ -133,8 +132,7 @@ GetOptions (
     ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 # specify arguments, otherwise print usage statement
 
-
-### Main code block
+## MAIN ########################################################################
 
 print STDERR "*** Job started *** \n";
 
@@ -164,25 +162,7 @@ if ( $use_metaxa == 1 ) {
 print STDERR "*** Job complete *** \n";
 
 
-### Subroutines
-
-sub usage {                     # print usage statement
-    print STDERR "******************************************************************************************** \n";
-    print STDERR "Call AMPHORA2 or Phyla-AMPHORA scripts to identify markers in genomes \n";
-    print STDERR "and Metaxa to extract 16S sequences \n";
-    print STDERR "Cite: AMPHORA2, HMMer, and Metaxa papers \n";
-    print STDERR "KBS 2014-01-21 \n";
-    print STDERR "Usage: perl extract_markers.pl \\ \n";
-    print STDERR "\t --file RENAME_TABLE \\ \n";
-    print STDERR "\t --wd PATH_TO_WORKING_DIRECTORY \\ \n";
-    print STDERR "\t --phyla_amphora [Use Phyla-AMPHORA instead of AMPHORA2] \\ \n";
-    print STDERR "\t --phylum [Which phylum, for Phyla-AMPHORA? (Default: 3)] \\ \n";
-    print STDERR "\t --amphora_path PATH_TO_AMPHORA_2 [or Phyla-AMPHORA] \\ \n";
-    print STDERR "\t --cpu [Use parallelized Phyla-Amphora script with this no. of threads, slightly faster] \\ \n";
-    print STDERR "\t --16S [Use Metaxa to extract 16S? ] \n";
-    print STDERR "******************************************************************************************** \n";
-    exit;
-}
+## SUBS ########################################################################
 
 sub read_rename_table {
     open (INFO, "< $rename_table") || die("Cannot open renaming table: $!\n");

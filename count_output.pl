@@ -111,27 +111,15 @@ GetOptions (
     ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 # specify arguments, otherwise print usage statement
 
+## MAIN ########################################################################
+
 read_genome_shortnames();
 read_marker_names();
 if ( $include_16S == 1 ) { add_16S(); }
 generate_output();
 print STDERR "*** Job complete *** \n";
 
-sub usage {                     # print usage statement
-        print STDERR "******************************************************* \n";
-        print STDERR "Count number of marker genes per species \n";
-        print STDERR "Default outputs in working folder: \n";
-        print STDERR "\t counts_table_protein and counts_table_rna \n";
-        print STDERR "KBS 2013-11-11 \n";
-        print STDERR "Usage: perl count_output.pl \\ \n";
-        print STDERR "\t --file GENOME_RENAME_TABLE \\ \n";
-        print STDERR "\t --markers MARKER_TABLE \\ \n";
-        print STDERR "\t --16S \[include 16S in table?\] \\ \n";
-        print STDERR "\t --wd WORKING_FOLDER \n";
-        print STDERR "******************************************************* \n";
-        exit;
-}
-
+## SUBS ########################################################################
 
 sub read_genome_shortnames {
     open (INFO, "< $rename_table_file") || die("Cannot open file with renaming table: $!\n");

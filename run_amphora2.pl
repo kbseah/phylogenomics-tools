@@ -22,14 +22,18 @@ GetOptions ("file=s" => \$rename_table,
             "amphora_path=s" =>\$path_to_amphora2,
             ) or usage();
 
+## MAIN ########################################################################
+
 read_rename_table();
 #run_amphora2();
 #run_metaxa();
 cleanup_metaxa();
 print "*** Job complete *** \n";
 
+## SUBS ########################################################################
 
-sub usage {                     # print usage statement
+sub usage {
+    # print usage statement
     print "******************************************************* \n";
     print "Call AMPHORA2 scripts to identify markers in genomes \n";
     print "and Metaxa to extract 16S sequences \n";

@@ -105,6 +105,7 @@ GetOptions ("file=s" => \$species_file,
             "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
             ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 
+## MAIN ########################################################################
 read_shortnames();
 read_marker_names();
 make_path("$path_to_wd/alignments");
@@ -114,6 +115,8 @@ print STDERR "***************************\n";
 print STDERR "****** Job complete *******\n";
 print STDERR "Alignments in folder $path_to_wd/alignments \n";
 print STDERR "***************************\n";
+
+## SUBS ########################################################################
 
 sub read_shortnames { # Read list of species shortnames
     open (INFO, "< $species_file") || die ("Cannot open list of species names: $!");

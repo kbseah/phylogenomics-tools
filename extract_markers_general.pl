@@ -29,7 +29,7 @@ GetOptions ("file=s" => \$rename_table,
             "hmm:s" => \$custom_hmm,
             ) or usage();
 
-### Main code block
+## MAIN ########################################################################
 
 print STDERR "*** Job started *** \n";
 
@@ -37,13 +37,12 @@ read_rename_table();
 parse_marker_names();
 extract_hmm_markers();
 
-
 print STDERR "*** Job complete *** \n";
 
+## SUBS ########################################################################
 
-### Subroutines
-
-sub usage {                     # print usage statement
+sub usage {
+    # print usage statement
     print STDERR "******************************************************************************************** \n";
     print STDERR "Extract protein sequences from genomes using HMM models \n";
     print STDERR "Cite: HMMer, EMBOSS \n";

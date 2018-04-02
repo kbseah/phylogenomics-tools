@@ -41,7 +41,7 @@ GetOptions ("markers=s" => \$marker_file,
             "numthreads=s" => \$NUMTHREADS,
 ) or usage();
 
-### Main code block ###
+## MAIN ########################################################################
 
 read_marker_names();
 #convert_phylip_aln();
@@ -57,9 +57,10 @@ parse_SH_output();
 print STDERR "*** Job complete *** \n";
 print STDERR "*** Happy Happy Joy Joy *** \n";
 
-### Subroutines ###
+## SUBS ########################################################################
 
-sub usage {                     # print usage statement
+sub usage {
+	# print usage statement
     print STDERR "******************************************************* \n";
     print STDERR "Infer trees and perform SH likelihood tests on pairs \n";
     print STDERR "Cite: RAxML, SH-test papers \n";

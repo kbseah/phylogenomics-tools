@@ -28,12 +28,15 @@ GetOptions ("file=s" => \$rename_table,
             "cpu=s" => \$NUMTHREADS,
             ) or usage();
 
+## MAIN ########################################################################
 read_rename_table();
 run_phyla_amphora();
 print "*** Job complete *** \n";
 
+## SUBS ########################################################################
 
-sub usage {                     # print usage statement
+sub usage {
+    # print usage statement
     print "******************************************************* \n";
     print "Call Phyla-AMPHORA to identify markers in genomes \n";
     print "Cite: Phyla-AMPHORA and HMMer papers \n";

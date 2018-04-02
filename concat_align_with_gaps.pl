@@ -141,7 +141,6 @@ if (!defined $alnTableFile|| !defined $speciesTableFile) {
     pod2usage(-message => "Insufficient options were supplied", -existatus => 2);
 }
 
-
 ## MAIN #######################################################################
 
 read_markers();
@@ -221,7 +220,7 @@ $concat_aln->set_displayname_flat; # Remove sequence position numbers from displ
 $concat_fasta->write_aln($concat_aln);
 $concat_phylip->write_aln($concat_aln);
 
-###############################################################################
+## SUBS ########################################################################
 
 sub read_markers {
     open(IN, "<", $alnTableFile) or die ("$!\n");
