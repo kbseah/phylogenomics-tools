@@ -60,7 +60,7 @@ print STDERR "*** Happy Happy Joy Joy *** \n";
 ## SUBS ########################################################################
 
 sub usage {
-	# print usage statement
+    # print usage statement
     print STDERR "******************************************************* \n";
     print STDERR "Infer trees and perform SH likelihood tests on pairs \n";
     print STDERR "Cite: RAxML, SH-test papers \n";
