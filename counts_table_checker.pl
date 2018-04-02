@@ -41,12 +41,13 @@ my $zeros;
 my @headers;
 my %tracking_hash;
 
-if ( ! @ARGV ) { usage(); }
+if ( ! @ARGV ) { pod2usage(-verbose=>0); }
 
 GetOptions ("table=s" => \$inputfile,
             "out=s"=> \$outfile,
             "zeros" => \$zeros,
-            ) or die usage ();
+            "help|h" => sub { pod2usage(-verbose=>1); },
+            ) or pod2usage(-verbose=>1) ;
 
 =head1 ARGUMENTS
 
@@ -67,6 +68,10 @@ alignments where some species have missing genes.
 =item --out <file>
 
 Name for output file. (Default: "marker_list_singlecopy")
+
+=item --help|-h
+
+Help message
 
 =back
 
@@ -107,20 +112,6 @@ foreach my $key (keys %tracking_hash) {
     }
 }
 close ($fhout);
-
-
-sub usage {
-    print STDERR "********************************************* \n";
-    print STDERR "Extract list of single copy genes found in \n";
-    print STDERR "all genomes for analysis. \n";
-    print STDERR "KBS 2013-11-15";
-    print STDERR "Usage: perl counts_table_checker.pl \\ \n";
-    print STDERR "\t --table COUNTS_TABLE_FILE \\ \n";
-    print STDERR "\t --zeros \\ # Allow missing genes \n";
-    print STDERR "\t > OUTPUT_LIST \n";
-    print STDERR "********************************************** \n";
-    exit;
-}
 
 =head1 COPYRIGHT AND LICENSE
 
