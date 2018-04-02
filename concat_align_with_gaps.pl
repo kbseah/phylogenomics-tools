@@ -125,17 +125,18 @@ my $model_choose = 0;
 my $use_mask = 0;
 my $concat_len;
 
-GetOptions (
-    "file|f=s" => \$speciesTableFile,
-    "markers|m=s" => \$alnTableFile,
-    "wd|w=s" => \$wdPath,
-    "output|o=s" => \$outfix,
-    "model_select|m" => \$model_choose,
-    "mask" => \$use_mask,
-    "threads|t=i" => \$numThreads,
-    'help|h'=> sub { pod2usage( -exitstatus => 2, -verbose => 2); },
-    'man'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) },
-);
+pod2usage(-verbose=>1) if (!@ARGV);
+
+GetOptions ("file|f=s" => \$speciesTableFile,
+            "markers|m=s" => \$alnTableFile,
+            "wd|w=s" => \$wdPath,
+            "output|o=s" => \$outfix,
+            "model_select|m" => \$model_choose,
+            "mask" => \$use_mask,
+            "threads|t=i" => \$numThreads,
+            'help|h'=> sub { pod2usage( -exitstatus => 2, -verbose => 1); },
+            'man'=> sub { pod2usage ( -exitstatus => 0, -verbose => 2) },
+            ) or pod2usage(-verbose=>0);
 
 if (!defined $alnTableFile|| !defined $speciesTableFile) {
     pod2usage(-message => "Insufficient options were supplied", -existatus => 2);
