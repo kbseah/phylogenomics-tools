@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/10602/kbseah/phylogenomics-tools.svg)](https://zenodo.org/badge/latestdoi/10602/kbseah/phylogenomics-tools)
 
-Have a bunch of microbial genomes that you want to make a multi-gene tree with? 
+Have a bunch of microbial genomes that you want to make a multi-gene tree with?
 
 Daunted by the prospect of having to extract, align, and tree conserved marker genes?
 
@@ -11,7 +11,7 @@ Give these scripts a try!
 Starting with genomic sequences in Fasta files, these scripts automate the process of:
  * Extracting marker genes using AMPHORA2 or Phyla-AMPHORA scripts
  * Extracting 16S genes using Metaxa
- * Aligning each gene (using MUSCLE for proteins, MAFFT LINSI for 16S) 
+ * Aligning each gene (using MUSCLE for proteins, MAFFT LINSI for 16S)
  * Generating alignment mask (weighted columns) using Zorro
  * Concatenating alignments into a single partitioned alignment
  * Reformatting input files for phylogeny reconstruction (with RAxML)
@@ -45,10 +45,10 @@ Put all the original fasta files into a folder called `./original_fasta`
 ## 1. Rename Fasta files with short-names
 
 ```bash
- $ perl rename_fasta_from_table.pl \ 
-         --file RENAME_TABLE \ 
-         --orig PATH_TO_ORIGINAL_FILES \ 
-         --wd NEW_WORKING_FOLDER 
+ $ perl rename_fasta_from_table.pl \
+         --file RENAME_TABLE \
+         --orig PATH_TO_ORIGINAL_FILES \
+         --wd NEW_WORKING_FOLDER
 ```
 
 Reads `RENAME_TABLE`.
@@ -86,10 +86,10 @@ If `--16S` switch is specified, also uses Metaxa to extract 16S sequences from e
 ## 3. Make table of how many markers detected per genome
 
 ```bash
- $ perl count_output.pl \ 
-         --file GENOME_RENAME_TABLE \ 
-         --markers MARKER_TABLE \ 
-	 --16S [Include 16S in output?] \
+ $ perl count_output.pl \
+         --file GENOME_RENAME_TABLE \
+         --markers MARKER_TABLE \
+         --16S [Include 16S in output?] \
          --wd WORKING_FOLDER \
 ```
 
@@ -101,24 +101,24 @@ IMPORTANT: If there is more than one sequence for a given marker in a genome, yo
  * Not include that marker for your analysis
  * Not include that genome in your analysis
  * Manually inspect the Fasta file to see which sequence is the "correct" one. For example, short hypothetical proteins or fragmentary ORFs may sometimes be mis-predicted as a marker, or the ORF for a given marker gene may be split into two fragments. In these cases you should manually edit the Fasta file to have only one sequence
- 
+
 Draft genomes may contain incomplete 16S genes - check the 16S.graph file for each species to see if all the conserved regions (V1 to V9) are present; choose the sequence that has the most regions covered.
 
 Use the script `counts_table_checker.pl` to make a list of genes that are present in all genomes and only in single copy. Bear in mind that the more genomes you add to your analysis, the fewer will meet this criteria because of missing data, misprediction, etc.
 
-In future, intend to implement new scripts which can deal with missing genes. 
+In future, intend to implement new scripts which can deal with missing genes.
 
 Make a plain text list of marker names to be used for subsequent phylogenetic analysis: ANALYSIS_MARKERS
 
 ## 4. Reorganize the Fasta files by marker gene
 
 ```bash
- $ perl repackage_fasta.pl \ 
+ $ perl repackage_fasta.pl \
          --file GENOME_RENAME_TABLE \          
-         --markers ANALYSIS_MARKERS \ 
-	 --16S [Also make 16S alignment?] \
-	 --mask [Mask alignment with Zorro?] \
-         --wd WORKING_FOLDER 
+         --markers ANALYSIS_MARKERS \
+         --16S [Also make 16S alignment?] \
+         --mask [Mask alignment with Zorro?] \
+         --wd WORKING_FOLDER
 ```
 
 Creates a new folder called "alignments" in working folder.
@@ -129,7 +129,7 @@ Optional: Also create 16S alignment
 
 Optional: Use Zorro to mask parts of alignment that are more uncertain.
 
-Each sequence header is renamed using the shortname for that species. 
+Each sequence header is renamed using the shortname for that species.
 
 If there is more than one 16S sequence for a given species, an error message will be shown.
 
@@ -171,7 +171,7 @@ fasttree < PREFIX.concat.phy > PREFIX.concat.fasttree
 ```
 
 
-Alternatively, you could use RAxML for phylogenetic tree inference, because it offers more types of models and analyses: 
+Alternatively, you could use RAxML for phylogenetic tree inference, because it offers more types of models and analyses:
 
 A. RAxML tree of the entire alignment as a single partition, using PROTCATWAG model for tree search, PROTGAMMAWAG model for optimization, find best tree from 10 randomized starting trees
 
@@ -184,7 +184,7 @@ Strip the best tree result of branch lengths to get only topology -> concat_cons
 B. RAxML best trees for each gene, single partition using PROTCATWAG model for tree search, PROTGAMMAWAG model for optimization
 
 ```bash
-raxmlHPC-PTHREADS -T 4 -m PROTCATWAG -s ./alignments/$marker.cat.phy -n $marker_besttree -N 10 -p 12345 
+raxmlHPC-PTHREADS -T 4 -m PROTCATWAG -s ./alignments/$marker.cat.phy -n $marker_besttree -N 10 -p 12345
 ```
 
 C. Perform SH-test for each gene's best tree and constraint tree:
