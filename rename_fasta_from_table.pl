@@ -35,6 +35,16 @@ Path to original files
 
 Name for new working directory (will overwrite if already exists)
 
+=item --autoremove
+
+Remove non-word characters automatically from shortnames
+
+=item --strict
+
+Check that all shortnames are 10 characters or fewer in length. This is necessary
+if you want the final alignment in Phylip format, which limits the length of
+sequence header names. (Default: No)
+
 =item --help|-h
 
 This help message
@@ -48,24 +58,6 @@ folder specified by --wd.
 
 Fasta headers will be replaced by FILENAME_COUNTER where COUNTER enumerates
 header numbers in a multi-Fasta file
-
-=head1 COPYRIGHT AND LICENSE
-
-phylogenomics-tools. Copyright (C) 2013 Brandon Seah (kbseah@mpi-bremen.de)
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 =cut
 
@@ -89,19 +81,26 @@ my %rename_hash;
 my $rename_table = "rename_table";
 my $path_to_original_files = "original_fasta";
 my $path_to_new_files = "new_fasta";
+my $strict;
+my $autoremove;
 
 if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 
 # specify arguments, otherwise print usage statement
 GetOptions ("file=s" => \$rename_table,
             "orig=s" => \$path_to_original_files,
+            "strict" => \$strict,
+            "autoremove" => \$autoremove,
             "wd=s" => \$path_to_new_files,
-            "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
+            "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>1); },
+            "man" => sub { pod2usage(-exitstatus=>1,-verbose=>2); },
             ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 
 ## MAIN ########################################################################
 read_rename_table();
+check_for_nonword_shortnames() unless $autoremove;
 check_for_duplicate_shortnames();
+check_for_shortname_length() if $strict;
 rename_fasta_files();
 print "*** Job done *** \n";
 
@@ -113,7 +112,7 @@ sub read_rename_table {
         while (my $text = <INFO>) {
             chomp($text);
             (my $origfile, my $newfile) = split(/\t/, $text);
-            $newfile =~ s/(\w*)\W*/$1/ge;
+            $newfile =~ s/(\w*)\W*/$1/ge if $autoremove; # Remove non-word characters
             $rename_hash{"$origfile"} = "$newfile";
         }
     close(INFO);
@@ -132,6 +131,32 @@ sub check_for_duplicate_shortnames {
         print "Exiting... \n";
         print "************* \n";
         exit;
+    }
+}
+
+sub check_for_nonword_shortnames {
+    my @invalid_shortnames;
+    foreach my $shortname (values %rename_hash) {
+        push @invalid_shortnames, $shortname if $shortname =~ m/\W/;
+    }
+    if (@invalid_shortnames) {
+        print STDERR "The following shortnames in the table $rename_table have non-word characters\n";
+        print STDERR "Please use only alphanumeric or underscore in shortnames\n";
+        print STDERR join "\n", @invalid_shortnames;
+        die ("\n\nExiting...\n");
+    }
+}
+
+sub check_for_shortname_length {
+    my @invalid_shortnames;
+    foreach my $shortname (values %rename_hash) {
+        push @invalid_shortnames, $shortname if length($shortname) > 10;
+    }
+    if (@invalid_shortnames) {
+        print STDERR "The following shortnames in the table $rename_table are longer than 10 chars\n";
+        print STDERR "You have chosen the --strict option. Please edit those names to be shorter than 10\n";
+        print STDERR join "\n", @invalid_shortnames;
+        die ("\n\nExiting ...\n");
     }
 }
 
@@ -157,3 +182,23 @@ sub rename_fasta_files {
         close($outputfile);
     }
 }
+
+=head1 COPYRIGHT AND LICENSE
+
+phylogenomics-tools. Copyright (C) 2013 Brandon Seah (kbseah@mpi-bremen.de)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+=cut
