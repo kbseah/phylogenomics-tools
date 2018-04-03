@@ -130,8 +130,8 @@ my %genePos;
 my $raxmlExecutable="/usr/local/bin/raxmlHPC-PTHREADS-AVX";
 my $numThreads = 8;
 my %best_model_choice;
-my $model_choose = 0;
-my $use_mask = 0;
+my $model_choose;
+my $use_mask;
 my $concat_len;
 my $phylip;
 
@@ -215,9 +215,9 @@ for my $marker (@markers) {
     }
 }
 
-if ($model_choose == 1) {
+# Check for best-fitting AA substitution model with RAxML
+if (defined $model_choose) {
     model_choice_wrapper();
-
     foreach my $marker (keys %best_model_choice) {
         print $marker."\t".$best_model_choice{$marker}."\n";
     }
@@ -356,7 +356,7 @@ sub write_concat_alignments {
         print $PARTITION join("" , $best_model_choice{$markers[0]} , ", ", $markers[0], " = ", join("-","1",$genePos{$markers[0]})), "\n"; }
     close ($PARTITION);
 
-    if ( $use_mask == 1 ) {
+    if (defined $use_mask) {
         system ("cat $wdPath/$outfix.$markers[0]\.mask >> $wdPath/$outfix\.mask"); # TO DO fix the path
     }
 
@@ -367,12 +367,12 @@ sub write_concat_alignments {
         $genePos{$markers[$x]}= $concat_aln->length();
         # Add the marker and its positions to the partitions file for later use with phylogenetic software
         open (my $PARTITION, ">>", $partitions_path) || die ("Cannot write partitions file: $!");
-        if ( $model_choose == 0 ) {
+        if ( ! defined $model_choose ) {
             print $PARTITION join("", "WAG", ", " , $markers[$x], " = ", join("-",($genePos{$markers[$x-1]} + 1),$genePos{$markers[$x]}) ), "\n"; }
-        elsif ( $model_choose == 1 ) {
+        else {
             print $PARTITION join("", $best_model_choice{$markers[$x]}, ", " , $markers[$x], " = ", join("-",($genePos{$markers[$x-1]} + 1),$genePos{$markers[$x]}) ), "\n"; }
         close ($PARTITION);
-        if ( $use_mask == 1 ) {
+        if (defined $use_mask) {
             system ("cat $wdPath/$outfix.$markers[$x]\.mask >> $wdPath/$outfix\.mask"); # TO DO Fix the path
         }
     }
