@@ -42,6 +42,12 @@ Logical: Include 16S gene? (Default: No)
 
 Logical: Use Zorro to mask alignment columns by alignment quality? (Default: No)
 
+=item --longest
+
+Logical: If more than one sequence is found per marker per species, simply pick
+the longest. (Default: No, ignore markers which occur more than once in a given
+species)
+
 =item --help|-h
 
 This help message
@@ -94,6 +100,7 @@ my @markers;
 my @shortnames;
 my $use_mask;
 my $include_16S;
+my $pick_longest;
 
 if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 
@@ -102,6 +109,7 @@ GetOptions ("file=s" => \$species_file,
             "wd=s" => \$path_to_wd,
             "mask" => \$use_mask,
             "16S" => \$include_16S,
+            "longest" => \$pick_longest,
             "help|h" => sub {pod2usage (-exitstatus=>2,-verbose=>2); }
             ) or pod2usage (-message=>"Please check input options",-exitstatus=>2,-verbose=>2);
 
@@ -149,16 +157,63 @@ sub call_Muscle {
         foreach my $species (@shortnames) {
             my $sp_marker_path = File::Spec->catfile($path_to_wd,$species,"$marker.pep");
             if (-f $sp_marker_path) {
+                # Open fasta file of marker gene for current species and hash in the sequences
+                my %sp_marker_seqs;
                 open (my $origfile, "<", $sp_marker_path) or die ("Cannot open .pep file for reading $sp_marker_path : $!");
-                while (<$origfile>) {
-                    my $newheader;
-                    if ($_ =~ /\>.*/) {$newheader = $species;}
-                    s/(\>).*/$1.$newheader/e;
-                    print $catfile $_;
+                my ($currhead,$currseq);
+                while (my $line = <$origfile>) {
+                    #my $newheader;
+                    #if ($_ =~ /\>.*/) {$newheader = $species;}
+                    #s/(\>).*/$1.$newheader/e;
+                    #print $catfile $_;
+                    if ($line =~ m/^>(.+)/) {
+                        chomp $line;
+                        if (defined $currhead && defined $currseq) {
+                            $sp_marker_seqs{$currhead} = $currseq;
+                            $currseq = undef;
+                        }
+                        $currhead = $1;
+                    } else {
+                        $currseq .= $line;
+                    }
                 }
+                # Pick up last sequence
+                $sp_marker_seqs{$currhead} = $currseq if (defined $currseq && defined $currhead);
                 close ($origfile);
+
+                # Check that sequences have been defined, and add to concatenated Multifasta file
+                if (defined %sp_marker_seqs) {
+                    my @headers = keys %sp_marker_seqs;
+                    if (scalar @headers == 1) {
+                        # Only one marker - print to concatenated sequences file
+                        print $catfile $headers[0]."\n";
+                        print $catfile $sp_marker_seqs{$headers[0]}."\n";
+                    } elsif (scalar keys %sp_marker_seqs > 1) {
+                        # More than one marker found for this species
+                        if (defined $pick_longest) {
+                            # Pick the longest sequence
+                            print STDERR "Marker file for marker $marker in species $species has more than one sequence, picking the longest ... \n";
+                            my %lengths;
+                            my $longest;
+                            foreach my $name (keys %sp_marker_seqs) {
+                                $lengths{$name} = length $sp_marker_seqs{$name};
+                                if (defined $longest) {
+                                    $longest = $name if $lengths{$name} > $lengths{$longest};
+                                } else {
+                                    $longest = $name;
+                                }
+                            }
+                            print $catfile $longest."\n";
+                            print $catfile $sp_marker_seqs{$longest}."\n";
+                        } else {
+                            print STDERR "Marker file for marker $marker in species $species contains more than one sequence! Skipping... \n";
+                        }
+                    }
+                } else {
+                    print STDERR "Marker file for marker $marker in species $species appears to be empty! Skipping...\n";
+                }
             } else {
-                print STDERR "Marker file for marker $marker in species $species not found, skipping \n";
+                print STDERR "Marker file for marker $marker in species $species not found. Skipping... \n";
             }
         }
         close ($catfile);
