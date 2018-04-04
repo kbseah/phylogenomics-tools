@@ -92,8 +92,8 @@ my $marker_file;
 my $path_to_wd;
 my @markers;
 my @shortnames;
-my $use_mask = 0;
-my $include_16S =0;
+my $use_mask;
+my $include_16S;
 
 if ( ! @ARGV ) { pod2usage (-message=>"Insufficient input options",-exitstatus=>2); }
 
@@ -110,7 +110,7 @@ read_shortnames();
 read_marker_names();
 make_path("$path_to_wd/alignments");
 call_Muscle();
-if ($include_16S == 1) { align_16S(); }
+align_16S() if defined $include_16S;
 print STDERR "***************************\n";
 print STDERR "****** Job complete *******\n";
 print STDERR "Alignments in folder $path_to_wd/alignments \n";
@@ -145,11 +145,11 @@ sub call_Muscle {
         my $marker_cat_file_path = File::Spec->catfile($path_to_wd, "alignments", "$marker.cat.pep");
         my $marker_aln_file_path = File::Spec->catfile($path_to_wd, "alignments", "$marker.cat.aln");
         system("cat /dev/null > $marker_cat_file_path");
-        open (my $catfile, ">>", $marker_cat_file_path) || die ("Cannot open file to write multifasta $marker_cat_file_path : $!");
+        open (my $catfile, ">>", $marker_cat_file_path) or die ("Cannot open file to write multifasta $marker_cat_file_path : $!");
         foreach my $species (@shortnames) {
             my $sp_marker_path = File::Spec->catfile($path_to_wd,$species,"$marker.pep");
             if (-f $sp_marker_path) {
-                open (my $origfile, "<", $sp_marker_path) || die ("Cannot open .pep file for reading $sp_marker_path : $!");
+                open (my $origfile, "<", $sp_marker_path) or die ("Cannot open .pep file for reading $sp_marker_path : $!");
                 while (<$origfile>) {
                     my $newheader;
                     if ($_ =~ /\>.*/) {$newheader = $species;}
@@ -168,7 +168,7 @@ sub call_Muscle {
         # Call MUSCLE to perform alignment, output to multi-Fasta aln
         system("muscle -in $marker_cat_file_path -out $marker_aln_file_path");
         print STDERR "Alignment complete for marker ", $marker, "\n";
-        if ( $use_mask == 1 ) {
+        if ( defined $use_mask ) {
             # Call Zorro to mask alignment
             print STDERR "***************************\n";
             print STDERR "Calling Zorro to mask alignment by confidence for $marker \n";
@@ -177,8 +177,8 @@ sub call_Muscle {
             system("zorro $marker_aln_file_path > $marker_cat_mask_raw_path");
             print STDERR "Alignment masking complete for marker $marker \n";
                                                     # Reformat mask to suitable input format for RAxML
-            open (MASKRAW, "<", $marker_cat_mask_raw_path) || die ("Cannot open mask_raw file for reformatting: $!");
-            open (MASKNEW, ">", $marker_cat_mask_path) || die ("Cannot open file to write new alignment mask: $!");
+            open (MASKRAW, "<", $marker_cat_mask_raw_path) or die ("Cannot open mask_raw file for reformatting: $!");
+            open (MASKNEW, ">", $marker_cat_mask_path) or die ("Cannot open file to write new alignment mask: $!");
             while (<MASKRAW>) {
                 my $rounded = int($_ + 0.5);
                 print MASKNEW "$rounded ";
@@ -192,12 +192,12 @@ sub call_Muscle {
 sub align_16S {
     my $rrn_cat_path = File::Spec->catfile($path_to_wd, "alignments", "16S.cat.fasta");
     system ("cat /dev/null > $rrn_cat_path");
-    open (my $catfile, ">>", $rrn_cat_path) || die ("Cannot open file to write multifasta: $!");
+    open (my $catfile, ">>", $rrn_cat_path) or die ("Cannot open file to write multifasta: $!");
     foreach my $species (@shortnames) {    # create concatenated 16S fasta file
         my $overcount = 0;
         my $rrn_orig_path = File::Spec->catfile($path_to_wd,$species,"16S.fasta");
         if (-f $rrn_orig_path) {
-            open (my $origfile, "<", $rrn_orig_path) || die ("Cannot open .fasta file to read: $!");
+            open (my $origfile, "<", $rrn_orig_path) or die ("Cannot open .fasta file to read: $!");
             while (<$origfile>) {
                 my $newheader;
                 if ($_ =~ /\>.*/) {
