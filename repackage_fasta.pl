@@ -9,6 +9,7 @@ repackage_fasta.pl - Reorganize Fasta files by marker gene
     perl repackage_fasta.pl --file <filename table> \
                             --wd <working directory> \
                             --markers <marker_table> \
+                            [--longest] \
                             --mask
 
     perl repackage_fasta.pl --help
@@ -186,7 +187,7 @@ sub call_Muscle {
                     my @headers = keys %sp_marker_seqs;
                     if (scalar @headers == 1) {
                         # Only one marker - print to concatenated sequences file
-                        print $catfile $headers[0]."\n";
+                        print $catfile ">$species\n"; # Use species name as the Fasta header
                         print $catfile $sp_marker_seqs{$headers[0]}."\n";
                     } elsif (scalar keys %sp_marker_seqs > 1) {
                         # More than one marker found for this species
@@ -203,7 +204,7 @@ sub call_Muscle {
                                     $longest = $name;
                                 }
                             }
-                            print $catfile $longest."\n";
+                            print $catfile ">$species\n"; # Use species name as fasta header
                             print $catfile $sp_marker_seqs{$longest}."\n";
                         } else {
                             print STDERR "Marker file for marker $marker in species $species contains more than one sequence! Skipping... \n";
