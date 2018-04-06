@@ -135,7 +135,7 @@ my $use_mask;
 my $concat_len;
 my $phylip;
 
-pod2usage(-verbose=>1) if (!@ARGV);
+pod2usage(-verbose=>0) if (!@ARGV);
 
 GetOptions ("file|f=s" => \$speciesTableFile,
             "markers|m=s" => \$alnTableFile,
