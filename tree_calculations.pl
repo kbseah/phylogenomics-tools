@@ -1,8 +1,30 @@
 #!/usr/bin/perl
 
-# Calls RAxML to infer multi-gene phylogeny from the concatenated alignment
-# Infer individual gene trees from individual alignments
-# For each gene alignment compare the best gene tree with concatenated tree with SH-test
+=head1 NAME
+
+tree_calculations.pl
+
+=head1 DESCRIPTION
+
+Calls RAxML to infer multi-gene phylogeny from the concatenated alignment
+Infer individual gene trees from individual alignments
+For each gene alignment compare the best gene tree with concatenated tree with SH-test
+
+
+=head1 SYNOPSIS
+
+perl tree_calculations.pl
+        --markers MARKER_TABLE
+	--wd WORKING_FOLDER 
+	--concat_aln concatenated_alignment_file_prefix 
+	--numthreads 4 
+
+perl tree_calculations.pl --help
+
+perl tree_calculations.pl --man
+
+=cut 
+
 
 ## TODO: Integrate wtih CONSEL to see how they perform on other tests!
 ## Make it possible to specify number of starting trees
@@ -20,6 +42,7 @@ use Bio::Seq;
 use Bio::AlignIO;
 use Bio::SimpleAlign;
 use Bio::LocatableSeq;
+use Pod::Usage;
 
 ### Global variables ###
 
@@ -38,7 +61,7 @@ my $do_perform_SH_test = 0;
 
 ### Options ###
 
-if ( !@ARGV ) { usage(); }
+if ( !@ARGV ) { pod2usage(-exitstatus=>2, -verbose=>0); }
 
 GetOptions (
 	"markers=s" => \$marker_file,
@@ -49,8 +72,61 @@ GetOptions (
 	"convert_phylip|p" => \$do_convert_phylip_aln,
 	"convert_nexus|n" => \$do_convert_nexus_aln,
 	"indiv|i" => \$do_calc_indiv_gene_trees,
-	"sh_test|t" => \$do_perform_SH_test
-) or usage();
+	"sh_test|t" => \$do_perform_SH_test,
+	"help|h" => sub {pod2usage(-exitstatus=>2, -verbose=>1)},
+	"man|m" => sub {pod2usage(-exitstatus=>0, -verbose=>2)},
+) or pod2usage(-exitstatus=>2, -verbose=>0);
+
+=head1 ARGUMENTS
+
+=over 8
+
+=item --markers <file>
+
+Tab-separated file containing list of all the gene markers contained in the
+sequence alignment.
+
+=item --wd <path>
+
+Path to working directory (Default: Current folder)
+
+=item --concat_aln <string>
+
+Filename prefix for the concatenated sequence alignment
+
+=item --numthreads <integer>
+
+Number of threads for RAxML to use
+
+=item --mask
+
+Use alignment masking? (Default: No)
+
+=item --convert_phylip|-p
+
+Convert individual Fasta-formatted gene alignments to Phylip format 
+
+=item --convert_nexus|-n
+
+Convert individual Fasta-formatted gene alignments to Nexus format 
+
+=item --indiv|-i
+
+Compute individual gene trees, in addition to tree from concatenated alignment 
+
+=item --sh_test|-t
+
+=item --help|-h
+
+Help message 
+
+=item --man|-m
+
+Manual page.
+
+=back
+
+=cut
 
 ### Main code block ###
 
