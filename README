@@ -21,8 +21,8 @@ Retrieve genomes as Fasta files. Put all scaffolds into single multi-fasta file.
 For each genome, specify a short name (10 characters or less, to be compatible with RAxML).
 Create a plain text file with the original Fasta filename and new shortname for each genome separated by a tab, one line per genome.
 Save this table (e.g. as RENAME_TABLE)
-Make a list of all the marker genes used by AMPHORA2, save file as MARKER_LIST
-Put all the original fasta files into a folder called ./original_fasta
+Make a list of all the marker genes used by AMPHORA2, save file as MARKER_TABLE
+Put all the original fasta files into a folder called ./original_fasta, this will be the path to place instead of PATH_TO_ORIGINAL_FILES
 
 1. Rename Fasta files with short-names
 
@@ -40,7 +40,7 @@ Then generates new directory per genome, renames fasta file and directory accord
 
  $ perl extract_markers.pl \
          --file RENAME_TABLE \
-         --wd PATH_TO_WORKING_DIRECTORY \
+         --wd NEW_WORKING_FOLDER \
          --phyla_amphora [Use Phyla-AMPHORA instead of AMPHORA2] \
          --phylum [Which phylum, for Phyla-AMPHORA? (Default: 3)] \
          --amphora_path PATH_TO_AMPHORA_2 [or Phyla-AMPHORA] \
@@ -53,13 +53,18 @@ If --cpu option is specified with number greater than 1, will use a souped-up ve
 Otherwise, just calls the script MarkerScanner.pl for each genome given in RENAME_TABLE
 If --16S switch is specified, also uses Metaxa to extract 16S sequences from each genome (preset to Bacterial mode - edit script if genomes are Archaea!)
 
+OPTIONAL: You can run the command below to grab all marker gene found by the previous script into a MARKER_TABLE file
+ls NEW_WORKING_FOLDER/*/*pep | xargs -n 1 basename | sort | uniq | sed "s/\.pep//g" > MARKER_TABLE
+
+
+
 3. Make table of how many markers detected per genome
 
  $ perl count_output.pl \
-         --file GENOME_RENAME_TABLE \
+         --file RENAME_TABLE \
          --markers MARKER_TABLE \
          --16S [Include 16S in output?] \
-         --wd WORKING_FOLDER \
+         --wd NEW_WORKING_FOLDER \
 
 The results are in two tab-separated tables: counts_table_protein and counts_table_rna for protein marker genes and 16S markers respectively.
 Inspect the tables to choose which markers to use for phylogenetic analysis.
@@ -73,11 +78,11 @@ Make a plain text list of marker names to be used for subsequent phylogenetic an
 4. Reorganize the Fasta files by marker gene
 
  $ perl repackage_fasta.pl \
-         --file GENOME_RENAME_TABLE \
+         --file RENAME_TABLE \
          --markers MARKER_TABLE \
          --16S [Also make 16S alignment?] \
          --mask [Mask alignment with Zorro?] \
-         --wd WORKING_FOLDER
+         --wd NEW_WORKING_FOLDER
 
 Creates a new folder called "alignments" in working folder.
 
@@ -94,9 +99,9 @@ At this point, you'll want to have a look at the alignments for each marker, rem
 5. Create concatenated alignment
 
  $ perl concat_align.pl \
-         --file GENOME_RENAME_TABLE \
+         --file RENAME_TABLE \
          --markers MARKER_TABLE \
-         --wd WORKING_FOLDER \
+         --wd NEW_WORKING_FOLDER \
          --mask [Use mask files produced by Zorro] \
          --model_select [Use automated model selection (slow)] \
          --out CONCATENATED_ALN_PREFIX
@@ -132,7 +137,7 @@ These (and more) automated by the script:
 
  $ perl tree_calculations.pl \
          --markers MARKER_TABLE \
-         --wd WORKING_FOLDER
+         --wd NEW_WORKING_FOLDER
          --concat_aln CONCATENATED_ALIGNMENT_PREFIX \
          --numthreads NUMBER_OF_RAXML_THREADS (at least 2!) \
          --mask [Use alignment mask?]
