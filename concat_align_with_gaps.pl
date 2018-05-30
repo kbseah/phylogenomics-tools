@@ -329,7 +329,7 @@ sub choose_prot_model {
     $best_model_choice{$alignmentName} = $AA_Models[$bestI];        # Write best model chosen to the hash of best model choices
 
     # cleanup RAxML files
-    my $cleanupcmd = "rm $wdPath/RAxML\*$alignmentName\_EVAL $wdPath/RAxML\*\_$alignmentName $wdPath/\*EVAL.out $wdPath/ST_\*out";
+    my $cleanupcmd = "rm RAxML\*$alignmentName\_EVAL RAxML\*\_$alignmentName *EVAL.out ST_\*out";
     system ($cleanupcmd);
 }
 
