@@ -210,6 +210,8 @@ Petersen et al. 2016. [Nature Microbiology 2: 16195.](http://www.nature.com/arti
 
 Rubin-Blum et al. 2017. [Nature Microbiology 2: 17093.](http://http://www.nature.com/articles/nmicrobiol201793)
 
+Diaz et al. 2020. [Int. J. System. Evol. Microbiol.](https://doi.org/10.1099/ijsem.0.004121)
+
 Drop me a message if you have used these scripts and would like to add your publication to this list!
 
 ## Citing these tools
